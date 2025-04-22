@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF 压缩工具</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-image: url('/static/background.png'); /* 替换为实际的科技感背景图片URL */
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      color: #f0c040;
+    }
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7); /* 半透明黑色覆盖 */
+    }
+    .container {
+      position: relative;
+      z-index: 1;
+      background-color: rgba(51, 51, 51, 0.9); /* 半透明深灰色背景 */
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+      max-width: 500px;
+      text-align: center;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    .form-group input[type="file"] {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+      background-color: #444;
+      color: #f0c040;
+    }
+    .compression-rates {
+      display: flex;
+      justify-content: space-between; /* 保持左右对齐 */
+      width: 100%; /* 确保占满父容器宽度 */
+      margin-top: 10px;
+      font-size: 12px;
+    }
+
+    /* 新增样式使两个选项等宽居中 */
+    .compression-rates > label {
+      flex: 1;
+      text-align: center;
+      padding: 5px 15px; /* 减少内边距增加内容区域宽度 */
+      white-space: nowrap; /* 防止文字换行 */
+      box-sizing: border-box;
+    }
+    .compression-rates label {
+      margin-right: 10px;
+      color: #f0c040;
+      padding: 5px 10px;
+      border-radius: 4px;
+      background-color: rgba(240, 192, 64, 0.1);
+      transition: background-color 0.3s ease;
+    }
+    .compression-rates label:hover {
+      background-color: rgba(240, 192, 64, 0.2);
+    }
+    .compression-rates input {
+      margin-right: 5px;
+    }
+    .compression-rates label:nth-child(1) {
+      color: #ff0000;
+    }
+    .compression-rates label:nth-child(2) {
+      color: #ff7f00;
+    }
+    .compression-rates label:nth-child(3) {
+      color: #ffff00;
+    }
+    .compression-rates label:nth-child(4) {
+      color: #7fff00;
+    }
+    .compression-rates label:nth-child(5) {
+      color: #00ff00;
+    }
+    .compression-rates label:nth-child(6) {
+      color: #00ff7f;
+    }
+    .compression-rates label:nth-child(7) {
+      color: #00ffff;
+    }
+    .custom-rate-container {
+      display: none;
+      margin-top: 20px;
+    }
+    .custom-rate-container label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+    .custom-rate-container input[type="range"] {
+      width: 100%;
+      background: #444;
+      border-radius: 4px;
+      height: 8px;
+      outline: none;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+    .custom-rate-container input[type="range"]:hover {
+      opacity: 1;
+    }
+    .custom-rate-container input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      background: #f0c040;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    .custom-rate-container input[type="range"]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      background: #f0c040;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    .custom-rate-container span {
+      display: block;
+      text-align: center;
+      margin-top: 10px;
+      font-size: 14px;
+      color: #f0c040;
+    }
+    .submit-btn {
+      display: block;
+      width: 100%;
+      padding: 15px;
+      background-color: #f0c040;
+      color: #333;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+    }
+    .submit-btn:hover {
+      background-color: #d4a020;
+    }
+    .loading-modal {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: linear-gradient(135deg, #000000, #4b4b4b); /* 渐变背景 */
+      padding: 20px;
+      border-radius: 8px;
+      color: #f0c040;
+      font-size: 24px;
+      text-align: center;
+      z-index: 9999; /* 确保在最上层 */
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    }
+    .loading-modal::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 40px;
+      height: 40px;
+      margin-top: -20px;
+      margin-left: -20px;
+      border: 4px solid transparent;
+      border-top-color: #f0c040;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .loading-modal .close-btn {
+      background: #f0c040;
+      color: #333;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+      border-radius: 4px;
+      margin-top: 10px;
+      transition: background-color 0.3s ease;
+    }
+    .loading-modal .close-btn:hover {
+      background-color: #d4a020;
+    }
+    footer {
+      position: absolute;
+      bottom: 20px;
+      width: 100%;
+      text-align: center;
+      color: #f0c040;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+<div class="overlay"></div>
+<div class="container">
+  <h1>PDF 压缩工具</h1>
+  <form id="pdfForm">
+    <div class="form-group">
+      <label for="file">上传 PDF:</label>
+      <input type="file" id="file" name="file" accept="application/pdf" required>
+    </div>
+    <div class="form-group">
+      <label>压缩方式选择：</label>
+      <div class="compression-rates">
+        <label><input type="radio" name="compressionType" value="preset" checked> 预设压缩</label>
+        <label><input type="radio" name="compressionType" value="custom"> 自定义比例</label>
+      </div>
+    </div>
+
+    <div class="form-group" id="presetOptions">
+      <label>预设压缩程度：</label>
+      <div class="compression-rates">
+        <label><input type="radio" name="rate" value="prepress"> 低</label>
+        <label><input type="radio" name="rate" value="printer"> 中</label>
+        <label><input type="radio" name="rate" value="ebook" checked> 高</label>
+        <label><input type="radio" name="rate" value="screen"> 极高</label>
+      </div>
+    </div>
+
+    <div class="form-group custom-rate-container" id="customOptions">
+      <label>自定义分辨率比例（30% - 90%）：</label>
+      <input type="range" id="customRate" name="customRate" min="30" max="90" value="70" step="1">
+      <span id="customRateValue">70%</span>
+    </div>
+    <button type="submit" class="submit-btn">Compress and Download</button>
+  </form>
+</div>
+<div class="loading-modal" id="loadingModal">
+  Loading... <span id="timer">0</span> seconds
+  <button class="close-btn" onclick="closeModal()">Close</button>
+</div>
+<footer>
+  Copyright © Mr Deng
+</footer>
+
+<script>
+document.getElementById('pdfForm').addEventListener('submit', async function(event) {
+  event.preventDefault();
+  const form = event.target;
+  const fileInput = form.file;
+  const file = fileInput.files[0];
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('rate', form.rate.value);
+  formData.append('customRate', form.customRate.value);
+
+  const compressionType = document.querySelector('input[name=compressionType]:checked').value;
+  formData.append('compressionType', compressionType);
+
+  const loadingModal = document.getElementById('loadingModal');
+  const timer = document.getElementById('timer');
+  let seconds = 0;
+
+  loadingModal.style.display = 'block';
+  timerInterval = setInterval(() => {
+    seconds++;
+    timer.textContent = seconds;
+  }, 1000);
+
+  try {
+    const response = await fetch('/compress', {  // 修改为 '/compress'
+      method: 'POST',
+      body: formData
+    });
+
+    if (response.ok) {
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = file.name;  // 使用原始文件名
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } else {
+      alert('Compression failed');
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    alert('An error occurred during compression');
+  } finally {
+    clearInterval(timerInterval);
+    loadingModal.style.display = 'none';
+  }
+});
+
+// 新增压缩类型切换事件处理
+document.querySelectorAll('input[name=compressionType]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        const type = this.value;
+        const presetOptions = document.getElementById('presetOptions');
+        const customOptions = document.getElementById('customOptions');
+        if (type === 'preset') {
+            presetOptions.style.display = 'block';
+            customOptions.style.display = 'none';
+            // 重置预设选项为默认值
+            document.querySelector('input[name=rate][value="ebook"]').checked = true;
+            document.getElementById('customRate').value = 70;
+        } else {
+            presetOptions.style.display = 'none';
+            customOptions.style.display = 'block';
+            // 清空预设选项选中
+            document.querySelectorAll('input[name=rate]').forEach(radio => radio.checked = false);
+        }
+    });
+});
+
+// 新增自定义比例滑块事件监听
+document.getElementById('customRate').addEventListener('input', function() {
+    const value = this.value;
+    document.getElementById('customRateValue').textContent = value + '%';
+});
+
+  function closeModal() {
+    clearInterval(timerInterval);
+    document.getElementById('loadingModal').style.display = 'none';
+  }
+
+// 初始化显示
+document.addEventListener('DOMContentLoaded', function() {
+    const customRate = document.getElementById('customRate');
+    const customRateValue = document.getElementById('customRateValue');
+    customRateValue.textContent = customRate.value + '%';
+});
+</script>
+</body>
+</html>

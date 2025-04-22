@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  dy-pdf-helper:
+    image: dy-pdf-helper:1.2
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dy-pdf-helper
+    ports:
+      - "8009:8009"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./compressed:/app/compressed
+    restart: always
+    environment:
+      - FLASK_ENV=production

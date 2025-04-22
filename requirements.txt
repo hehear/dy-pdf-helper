@@ -1,0 +1,3 @@
+Flask==2.0.3  # 核心web框架
+Werkzeug==2.0.3  # Flask的底层WSGI工具库（通常会自动包含）
+hypercorn==0.17.3  # 添加版本号约束的ASGI服务器依赖
