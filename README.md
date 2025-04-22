@@ -5,6 +5,7 @@ PDF 压缩工具是一个基于 Flask 的 Web 应用程序，用于压缩 PDF �
 ## 功能特性
 
 - 支持多种压缩级别：从高保真（prepress）到低保真（screen）
+- 支持按照比例压缩pdf文件
 - 用户友好的界面，易于操作
 - 自动下载压缩后的 PDF 文件
 - 使用 Ghostscript 进行高效的 PDF 压缩
